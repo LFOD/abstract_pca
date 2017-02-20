@@ -1,7 +1,6 @@
 library(tidyverse)
 library(tidytext)
 library(irlba)
-# devtools::install_github("kbenoit/quanteda") 
 library(quanteda)
 
 data(stop_words)
@@ -43,3 +42,21 @@ plot_ly(term_pca_df, x = ~PC1, y = ~PC2, z = ~PC3, opacity = 0.2,
   layout(scene = list(xaxis = list(title = 'PC1'),
                       yaxis = list(title = 'PC2'),
                       zaxis = list(title = 'PC3')))
+
+dist <- dist(term_pca_df[,1:3])
+m <- as.matrix(dist)
+
+#find most different for users
+most_diff <- which(matrix(m %in% head(sort(m, TRUE), 30), nr = nrow(m)), arr.ind = TRUE)
+
+#so we don't pick ourselves like a bunch of cotton headed ninny muggins
+m[m==0] <- Inf
+
+
+save(m,file = "../papr/rec_matrix.Rda")
+
+#add index to papers dataset
+papers %>%
+  inner_join(lookup, by = "titles") -> dat
+
+save(dat,file = "../papr/biorxiv_data.Rda")
